@@ -1,0 +1,14 @@
+localhost	2021-01-30 16:39:28	Exchange Type: Direct; Exchange Name: DirectExchangeDemo; Queue: userQueue
+Payload: {"firstname":"Joy","lastname":"Lennox","username":"joy@lennox.com","email":"joy@lennox.com","password":"leenox"}
+localhost	2021-01-30 16:54:25	Exchange Type: Direct; Exchange Name: DirectExchangeDemo; Queue: userQueue
+Payload: {"firstname":"Patrice","lastname":"Crystal","username":"patrice@test.com","email":"patrice@test.com","password":"patrice"}
+2021-01-30 18:46:24	Exchange Type: Fanout; Exchange Name: FanoutExchangeDemo; Queue: fanout-userQueue
+Payload: {"firstname":"Kerry","lastname":"Waterstones","username":"kerry@waterstones.co.uk","email":"kerry@waterstones.co.uk","password":""}
+2021-01-30 18:48:12	Exchange Type: Fanout; Exchange Name: FanoutExchangeDemo; Queue: fanout-contactQueue
+Payload: {"firstname":"Kerry","lastname":"Waterstones","username":"kerry@waterstones.co.uk","email":"kerry@waterstones.co.uk","password":""}
+2021-01-30 18:58:43	Exchange Type: Fanout; Exchange Name: FanoutExchangeDemo; Queue: fanout-userQueue
+Payload: {"firstname":"Danny","lastname":"Leigh","username":"dan@test.com","email":"dan@test.com","password":"danny"}
+2021-01-30 18:59:05	Exchange Type: Fanout; Exchange Name: FanoutExchangeDemo; Queue: fanout-contactQueue
+Payload: {"firstname":"Danny","lastname":"Leigh","username":"dan@test.com","email":"dan@test.com","password":"danny"}
+2021-02-02 22:27:11	Exchange Type: Topic; Exchange Name: TopicExchangeDemo; Queue: contactQueue
+Payload: {"firstname":"Dan","lastname":"Olawale","address1":"14 Mill St","address2":"","city":"Perth","county":"WA","post_code":"6000","email":"daniel.olawale@custom-gateway.co.uk"}

@@ -1,0 +1,106 @@
+RabbitMq 
+
+RabbitMq is a message based system. A message-based system places a message broker in between two services communicating with each other. The broker is then configured to send messages to the receiver
+
+The advantages of this are that:
+The sender only needs to know about the message broker and doesn’t need to know anything about the receivers
+Multiple receivers are possible and the broker can also duplicate messages
+You can easily add new receivers without changing anything on the sender
+Message based systems also give the possibility of queueing messages. If processing is slow, the messages just wait to be picked up and are not lost
+This allows to easily decouple multiple parts of the system
+
+Consequences of messaged based system:
+Communication is asynchronous
+The message broker is now an integral part of your application. Without it communication is not possible between the different services. This however can be mitigated by having multiple instances of RabbitMq running - this is called clustering
+Message based systems lead to increased network traffic.
+
+
+RabbitMq Protocols
+AMQP 0-9-1 (Advanced Message Queueing Protocol v0.9.1)
+STOMP (Simple Text Oriented Message Protocol)
+MQTT (Message Queueing Telemetry Transport)
+AMQP 1.0 (Advanced Message Queueing Protocol v1)
+
+Advanced Message Queueing Protocol is a binary protocol. Which means messages are sent in a binary format.
+Http is an example of a text transfer protocol where data is sent as fields and values in text format e.g 
+
+HTTP/1.1 200 OK
+Server: Apache/1.24
+Content-Length: 600	
+Content-Type: image/jpeg
+
+Even if the message being sent is binary (e.g an image), the data is communicated as texts with field names and corresponding values.
+
+AMQ Protocol, by contrast, does not use field names. Instead the receiving service can find data at specific locations that have been agreed on. 
+
+A single AMQP frame is made up of the following bytes and in the order below
+Type: type of message. This can be the Method, Header, Body or Heartbeat
+Channel. THe channel is a virtual connection. AMQP allows a client to have one physical connection to the broker and uses that physical connection for multiple independent threads of messages. Each of these threads get their own chanel
+Size: A number indicating the size of the frame’s payload
+Payload: Multiple bytes to put the payload of the frame. The number of bytes is equal to the number in the size block
+Frame-end: A single byte indicating the end of the frame.
+
+The payload differs depending on the type of frame being sent
+The Method payload will contain a value depending on the action we want to perform.
+For a header frame, the payload will contain details such as the entire size that will be sent.
+A body frame, the payload will contain bytes of data (i.e binary data) that are being sent.
+A heartbeat frame is used to signal that the sender is still alive.
+
+Therefore a single message in an AMQ Protocol contains many frames. A method frame, a header frame and many body frames.
+
+
+RabbitMq and the AMQ Model
+The AMQ model describes how RabbitMq is constructed.
+Everything starts with an application that wants to send a message. This is called the publisher..
+
+The publisher connects to a broker (i.e RabbitMq) which then publishes this message to an exchange. The publisher can also send a routing key along with the message to the exchange. The exchange then passes the message on to the queues. The exchange will use certain rules to determine which queue to route the message to. These rules are called bindings and they can use the routing key that the publisher provides. The message is then sent to the receiving application called the consumer. The broker sends the message to a subscribed consumer but it is also possible for the consumer to pull the message on demand. 
+Note that multiple applications (i.e consumers) can be subscribed to the same queue but only one of them will receive a single message.
+
+Once the consumer receives a message, it sends an acknowledgement back to the broker which signals the broker to delete the message from the queue.
+
+Queue And Exchage Configuration
+Both Queue and Exchange can be defined as durable or transient. A durable queue or exchange will survive a RabbitMq restart and transient ones will not. Note that this doesn’t mean any undelivered messages are persisted. RabbitMq only keeps messages in memory. This means they will be lost when the server restarts. (Durable queues survive broker restarts. The messages are lost however)
+
+It is also possible to configure both a Queue and a Exchange to Auto-delete itself when nothing is connected to it anymore. E.g a queue can automatically be deleted when the last consumer disconnects.
+
+
+RabbitMq Exchange Types
+There are 4 types: Direct, Fanout, Topic and Headers. Each of these will handle messages and routing keys differently.
+
+Direct Exchange: will route messages to all queues that have been connected to the exchange with the same routing key as the routing key used by the publisher.
+
+Fanout Exchange: Messages are routed to all bound queues and the routing key is just ignored. Every queue will receive a copy of the message.
+
+Topic Exchange: routes messages based on patterns in the routing key. E,g if the routing key is customer.purchase.cancelled. A queue with a binding customer.# will receive the message. The # means match zero or more words in the routing key. Also a queue declared with a binding *.purchase.cancelled will also receive the message. The * will match a single word. A queue with a binding of premiumCustomer.# in this example will not match and therefore will not receive the message.
+
+Headers Exchange: will ignore the routing key and instead look at the headers sent with the message. E.g if a message is sent with the header entity: order, action: cancelled. A queue with a binding entity=order, action=cancelled and x-match=all will receive the message. The x-match=all means all headers must match. In contrast, a queue with the binding entity=order, action=confirmed and x-match=all will not receive the message as all the headers do not match.
+A queue with a binding entity=order, action=confirmed and x-match=any will receive the message as only one header is required to be matched.
+
+Exchange Type Use Cases
+Even though the producing application connects to the exchange, it is actually the consumers that determine which exchange type to use.
+
+Fanout Exchange broadcasts messages to all bound queues. E.g a service announcement that needs to be sent to all connected application 
+
+Topic exchange is ideal for cases where the routing key is constructed dynamically and consumers won’t filter out certain messages e.g consumers that perform background tasks, logging events, or a system that distributes workload based on geographic location.
+
+Direct exchange needs to have a routing key that matches the binding. Therefore the queues usually perform specific tasks e.g a queue for creating thumbnails or a queue for performing facial recognition.
+
+Headers exchange work with headers sent with the message and not the routing key. The headers can be strings, integers or a dictionary for example.
+
+
+RabbitMQ load balances messages between consumers not queues. If two applications are consuming the same queues, they will receive the message one after the other. This is regardless of the exchange type.
+
+SO typically:
+For Broadcasting, use Fanout Exchange.
+For Simple scenarios that won’t involve too many queues and bindings, use DIrect exchange
+For complex scenarios where you need some kind of categorisation or filtering or require a lot of flexibility, use Topic exchange
+For special filtering, use Headers Exchange.
+
+
+Why Use RabbitMQ
+Other popular message brokers include ActiveMQ, AWS SQS and Azure Service Bus.
+
+RabbitMQ supports clustering. Clustering helps to support heavy loads but still appear to be a single logical broker to the client applications. The client has a list of node addresses that connect to a single node. When a node fails, the client simply connects to another node.
+Publishers and consumers don’t have to connect to the same node.
+
+If there is a node failure in a cluster, any messages and queues on this node will be lost. THe use of Highly Available Queues solves this problem. With highly available queues, when there is anode failure, the other queues will contain any undelivered messages and the application will still receive them.

@@ -1,0 +1,36 @@
+After installation (rabbitmq website):
+
+1: Ensure server is successfully started
+sudo systemctl status rabbitmq-server.service
+
+2.Enable necessary plugins e,g
+sudo rabbitmq-plugins enable rabbitmq_management
+sudo rabbitmq-plugins enable rabbitmq_shovel
+sudo rabbitmq-plugins enable rabbitmq_shovel_management
+
+You can also check the available plugins
+sudo rabbitmq-plugins list
+
+see more about plugins at https://www.rabbitmq.com/plugins.html
+
+3.Now change user in rabbitmq /var/lib/rabbitmq
+sudo chown -R rabbitmq:rabbitmq /var/lib/rabbitmq/
+
+4. Create new users and set permissions if desired
+Rabbitmq by default creates a username 'guest' with password 'guest'
+
+You can create a new user if you want. e.g to create a admin user daniel
+sudo rabbitmqctl add_user admin
+sudo rabbitmqctl set_user_tags admin administrator
+sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+
+5. start the rabbitmq client
+sudo ss -tunelp | grep 15672
+sudo ufw allow proto tcp from any to any port 5672,15672
+
+Enter http://0.0.0.0:15672/ in the browser
+You can also use you local ip address e.g
+192.168.0.11:15672
+Enter username 'admin' and password 'admin' or use the credentials created above.
+
+You can also use the guest credentials.
